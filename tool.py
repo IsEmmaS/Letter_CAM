@@ -2,6 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 import cv2
+
 """
 [A_Z Handwritten Data.csv] file can 
 download from kaggle which link is

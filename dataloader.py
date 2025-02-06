@@ -4,8 +4,10 @@ from typing import Tuple, Any
 
 import torch
 import torchvision.transforms as T
-from torch.utils.data import Dataset, DataLoader, random_split
-from torch_snippets import fname, parent, read  # 假设 torch_snippets 是已经安装的库
+from torch.utils.data import Dataset, DataLoader
+from torch_snippets import fname, parent, read
+from model import letterClassifier
+from sklearn.model_selection import train_test_split
 
 
 class AlphabetDataset(Dataset):
@@ -61,47 +63,38 @@ def load_alphabet_data(
     :param file_path: the path of the alphabet images
     :return: Tuple of 2 data loaders and 2 datasets
     """
-    train_transform = T.Compose(
-        [
-            T.ToPILImage(),
-            T.Resize(64),
-            T.CenterCrop(64),
-            T.ColorJitter(
-                brightness=(0.95, 1.05),
-                contrast=(0.95, 1.05),
-                saturation=(0.95, 1.05),
-                hue=0.05,
-            ),
-            T.RandomAffine(degrees=5, translate=(0.01, 0.1)),
-            T.ToTensor(),
-            T.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-        ]
-    )
-
-    val_transform = T.Compose(
-        [
-            T.ToPILImage(),
-            T.Resize(64),
-            T.CenterCrop(64),
-            T.ToTensor(),
-            T.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-        ]
-    )
-
-    dataset = AlphabetDataset(file_path)
-    data_size = len(dataset)
-    train_size = int(0.8 * data_size)
-    val_size = data_size - train_size
-
-    train_ds, val_ds = random_split(
-        dataset, [train_size, val_size], generator=torch.Generator().manual_seed(42)
-    )
-
-    train_ld = DataLoader(
-        train_ds, batch_size=32, shuffle=True, collate_fn=train_ds.collate_fn
-    )
-    val_ld = DataLoader(
-        val_ds, batch_size=32, shuffle=False, collate_fn=val_ds.collate_fn
-    )
-
+    all_files = glob.glob(f'{file_path}/*/*.png')
+    train_files, val_files = train_test_split(all_files)
+    train_ds = AlphabetDataset(train_files, train_transform)
+    val_ds = AlphabetDataset(val_files, val_transform)
+    train_ld, val_ld = (DataLoader(train_ds, shuffle=True, collate_fn=train_ds.collate_fn),
+                        DataLoader(val_ds, shuffle=True, collate_fn=val_ds.collate_fn))
     return train_ld, val_ld, train_ds, val_ds
+
+
+train_transform = T.Compose(
+    [
+        T.ToPILImage(),
+        T.Resize(64),
+        T.CenterCrop(64),
+        T.ColorJitter(
+            brightness=(0.95, 1.05),
+            contrast=(0.95, 1.05),
+            saturation=(0.95, 1.05),
+            hue=0.05,
+        ),
+        T.RandomAffine(degrees=5, translate=(0.01, 0.1)),
+        T.ToTensor(),
+        T.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+    ]
+)
+
+val_transform = T.Compose(
+    [
+        T.ToPILImage(),
+        T.Resize(64),
+        T.CenterCrop(64),
+        T.ToTensor(),
+        T.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+    ]
+)
