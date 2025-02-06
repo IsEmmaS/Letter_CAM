@@ -1,1 +1,3 @@
 .mypy_cache
+archive/*  
+!archive/csv_archive_here

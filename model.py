@@ -4,7 +4,7 @@ import torch.nn as nn
 
 class letterClassifier(nn.Module):
 
-    def __init__(self)->None:
+    def __init__(self) -> None:
         super(letterClassifier, self).__init__()
 
         self.model = nn.Sequential(
@@ -23,7 +23,7 @@ class letterClassifier(nn.Module):
         self.loss_fn = nn.CrossEntropyLoss()
 
     @staticmethod
-    def convBlock(in_planes:int, out_planes:int)->nn.Sequential:
+    def convBlock(in_planes: int, out_planes: int) -> nn.Sequential:
         """
         Convolutional Block
         :param in_planes: int number of input channels
@@ -37,7 +37,7 @@ class letterClassifier(nn.Module):
             nn.BatchNorm2d(out_planes),
             nn.MaxPool2d(2),
         )
-        
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Forward pass through the model
@@ -45,8 +45,10 @@ class letterClassifier(nn.Module):
         :return: output tensor
         """
         return self.model(x)
-    
-    def compute_metrics(self, preds:torch.Tensor, targets:torch.Tensor)->tuple[torch.Tensor, torch.Tensor]:
+
+    def compute_metrics(
+        self, preds: torch.Tensor, targets: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Calculate metrics
         :param preds: tensor output from model
@@ -57,4 +59,3 @@ class letterClassifier(nn.Module):
         acc = (torch.max(preds, 1)[1] == targets).float().mean()
 
         return loss, acc
-    
