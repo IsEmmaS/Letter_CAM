@@ -1,12 +1,14 @@
 import glob
 import random
 from typing import Tuple, Any
+import sys
+
+sys.setrecursionlimit(3000)  # 默认递归深度是 1000，根据需要适当调大
 
 import torch
 import torchvision.transforms as T
 from torch.utils.data import Dataset, DataLoader
 from torch_snippets import fname, parent, read
-from model import letterClassifier
 from sklearn.model_selection import train_test_split
 
 
@@ -18,7 +20,7 @@ class AlphabetDataset(Dataset):
     def __init__(self, file_path: str, transform=None):
         super(AlphabetDataset, self).__init__()
 
-        self.files = glob.glob(f"{file_path}/*/*.png")  # 收集所有图像文件
+        self.files = file_path  # glob.glob(f"{file_path}/*/*.png")  # 收集所有图像文件
         self.transform = transform
         self.letter_2_index = {
             letter: idx for idx, letter in enumerate("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
@@ -63,12 +65,14 @@ def load_alphabet_data(
     :param file_path: the path of the alphabet images
     :return: Tuple of 2 data loaders and 2 datasets
     """
-    all_files = glob.glob(f'{file_path}/*/*.png')
+    all_files = glob.glob(f"{file_path}/*/*.png")
     train_files, val_files = train_test_split(all_files)
     train_ds = AlphabetDataset(train_files, train_transform)
     val_ds = AlphabetDataset(val_files, val_transform)
-    train_ld, val_ld = (DataLoader(train_ds, shuffle=True, collate_fn=train_ds.collate_fn),
-                        DataLoader(val_ds, shuffle=True, collate_fn=val_ds.collate_fn))
+    train_ld, val_ld = (
+        DataLoader(train_ds, shuffle=True, collate_fn=train_ds.collate_fn),
+        DataLoader(val_ds, shuffle=True, collate_fn=val_ds.collate_fn),
+    )
     return train_ld, val_ld, train_ds, val_ds
 
 

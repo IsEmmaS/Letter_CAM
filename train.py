@@ -46,12 +46,12 @@ if __name__ == "__main__":
     from dataloader import load_alphabet_data
     from model import letterClassifier
 
-    # fixed this, path should be abs-path otherwise may occur overflow 
+    # fixed this, path should be abs-path otherwise may occur overflow
     train_dl, val_dl, train_ds, val_ds = load_alphabet_data("/home/emma/ocr/archive")
     model = letterClassifier().to(device)
     criterion = model.compute_metrics  # self Made Indicator Calculations
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
-    num_epochs = 2
+    num_epochs = 10
 
     log = Report(num_epochs)
     for epoch in trange(num_epochs):
@@ -68,14 +68,16 @@ if __name__ == "__main__":
         log.report_avgs(epoch + 1)
 
     im2fmap = nn.Sequential(
-        *(list(model.model[:5].children()) + list(model.model[5][:2].children()))
+    *list(model.model[:5].children())
     )
 
     def im2gradCAM(x):
+        d = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        
+        
         model.eval()
         logits = model(x)
         activations = im2fmap(x)
-        print(activations.shape)
 
         pred = logits.max(-1)[-1]
 
@@ -89,7 +91,7 @@ if __name__ == "__main__":
 
         heatmap = torch.mean(activations, dim=1)[0].cpu().detach()
 
-        return heatmap, "Uninfected" if pred.item() else "Parasitized"
+        return heatmap, d[pred.item()]
 
     Size = 28
 
@@ -103,7 +105,7 @@ if __name__ == "__main__":
         map = np.uint8(map * 0.7 + img * 0.3)
         return map
 
-    N = 16
+    N = 32
     _val_dl = DataLoader(
         val_ds, batch_size=N, shuffle=True, collate_fn=val_ds.collate_fn
     )
@@ -114,8 +116,8 @@ if __name__ == "__main__":
         img = resize(z[i], Size)
         heatmap, pred = im2gradCAM(x[i : i + 1])
 
-        if pred == "Uninfected":
+        if pred in ['O','B']:
+            heatmap = upsampleHeatmap(heatmap, img)
+            subplots([img, heatmap], nc=2, figsize=(5, 3), suptitle=pred)
+        else:
             continue
-
-        heatmap = upsampleHeatmap(heatmap, img)
-        subplots([img, heatmap], nc=2, figsize=(5, 3), suptitle=pred)
