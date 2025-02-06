@@ -40,13 +40,14 @@ def validate_batch(model, data, criterion):
 
 
 if __name__ == "__main__":
-    from torch_snippets import *
-    # from torch_snippets import Report, resize, subplots
+    from torch_snippets.torch_loader import Report
+    from torch_snippets import resize, subplots
 
     from dataloader import load_alphabet_data
     from model import letterClassifier
 
-    train_dl, val_dl, train_ds, val_ds = load_alphabet_data("archive")
+    # fixed this, path should be abs-path otherwise may occur overflow 
+    train_dl, val_dl, train_ds, val_ds = load_alphabet_data("/home/emma/ocr/archive")
     model = letterClassifier().to(device)
     criterion = model.compute_metrics  # self Made Indicator Calculations
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
