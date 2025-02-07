@@ -1,0 +1,2 @@
+## This repo is aim to implement a Grad-CAM on Letter classifier
+*However, the impact of Grad-CAM is not readily discernible given the 26 letters and the modest dimensions of the image dataset (3x28x28). The present repository is to be re-conceptualised; further information is currently being sought.*
